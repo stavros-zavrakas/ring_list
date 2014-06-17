@@ -5,7 +5,7 @@
 #include <semaphore.h>
 #include "libraries/utils/utils.c"
 
-#define RING_TRIGGER_EVENT 					100
+#define RING_TRIGGER_EVENT 					10
 #define MAX_RING_SIZE 						500
 #define MAX_TIME_BETWEEN_POSTS_MILLISECS 	180000
 

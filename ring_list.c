@@ -1,5 +1,4 @@
 #include "ring_list.h"
-#include <pthread.h>
 
 ring_buffer_t *ring_manager_init() {
 	ring_buffer_t *ring_buffer_metadata = (ring_buffer_t*)malloc(sizeof(ring_buffer_t));
