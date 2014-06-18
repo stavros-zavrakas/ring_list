@@ -1,27 +1,23 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-#include "ring_list.c"
-#include "libraries/mac_manipulation_functions/mac_manipulation_functions.c"
+#include "header.h"
 
-#define SENDER_AWAKE_EVERY_SECS 1
+int main(int argc, char *argv[]) {
+	ring_buffer_metadata = ring_manager_init();
+	ring_buffer_metadata->send_data_handler = &sending_data;
 
-pthread_t sniffing_thread, sender_thread;
-ring_buffer_t *ring_buffer_metadata;
-
-struct packet *sending_data(struct packet *packets, int items_to_send) {
-	int i;
-	char *body_dump;
-	struct packet *packets_copy = packets;
-
-	for(i=0;i<items_to_send;i++){
-		char device_mac_str[] = { '\0', '\0', ':', '\0', '\0', ':', '\0', '\0', ':', '\0', '\0', ':', '\0', '\0', ':', '\0', '\0', '\0' };
-		bytes_to_mac(device_mac_str, packets->mac);
-		packets_copy = packets;
-		packets = packets->next;
+	if(pthread_create(&sniffing_thread, NULL, sniffing_data_loop, NULL)) {
+		syslog(LOG_ERR, "Error creating sender thread");
+		return -1;
 	}
 
-	return packets_copy;
+	if(pthread_create(&sender_thread, NULL, sending_data_loop, NULL)) {
+		syslog(LOG_ERR, "Error creating sender thread");
+		return -1;
+	}
+	
+	pthread_join(sender_thread, NULL);
+	pthread_join(sniffing_thread, NULL);
+
+	return 0;
 }
 
 static void *sniffing_data_loop() {
@@ -50,26 +46,17 @@ static void *sending_data_loop() {
 	}	
 }
 
-int sniffer_init() {
-}
+struct packet *sending_data(struct packet *packets, int items_to_send) {
+	int i;
+	char *body_dump;
+	struct packet *packets_copy = packets;
 
-int main(int argc, char *argv[]) {
-	ring_buffer_metadata = ring_manager_init();
-	ring_buffer_metadata->send_data_handler = &sending_data;
-
-	// Thread to get data.
-	if(pthread_create(&sniffing_thread, NULL, sniffing_data_loop, NULL)) {
-		syslog(LOG_ERR, "Error creating sender thread");
-		return -1;
+	for(i=0;i<items_to_send;i++){
+		char device_mac_str[] = { '\0', '\0', ':', '\0', '\0', ':', '\0', '\0', ':', '\0', '\0', ':', '\0', '\0', ':', '\0', '\0', '\0' };
+		bytes_to_mac(device_mac_str, packets->mac);
+		packets_copy = packets;
+		packets = packets->next;
 	}
 
-	// Thread to send data.
-	if(pthread_create(&sender_thread, NULL, sending_data_loop, NULL)) {
-		syslog(LOG_ERR, "Error creating sender thread");
-		return -1;
-	}
-	pthread_join(sender_thread, NULL);
-	pthread_join(sniffing_thread, NULL);
-
-	return 0;
+	return packets_copy;
 }

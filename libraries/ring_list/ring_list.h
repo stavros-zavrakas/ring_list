@@ -3,7 +3,6 @@
 #include <string.h>
 #include <syslog.h>
 #include <semaphore.h>
-#include "libraries/utils/utils.c"
 
 #define RING_TRIGGER_EVENT 					10
 #define MAX_RING_SIZE 						500
