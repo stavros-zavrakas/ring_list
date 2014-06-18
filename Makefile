@@ -1,10 +1,13 @@
 CC=gcc
-CFLAGS=-I.
-DEPS = ring_list.h libraries/utils/utils.h mac_manipulation_functions.h
-OBJ = ring_list.o utils.o mac_manipulation_functions.o
+LIB_HEADERS = -I/libraries
+LIB = -pthread -lm
 
-%.o: %.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+ring_manager.out: main.o 
+	$(CC) $(LIB_HEADERS) -o $@ $<  $(LIB)
 
-ringlist: $(OBJ)
-	gcc -o $@ $^ $(CFLAGS)
+main.o: main.c 
+	$(CC) -c  main.c
+
+clean:
+	rm -rf *.o 
+	rm ring_manager.out
